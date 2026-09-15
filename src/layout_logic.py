@@ -285,16 +285,19 @@ def generate_unique_combinations(tiles: list[Tile], size: int) -> list[Layout]:
     """
     def get_canonical_form(grid: tuple[tuple[Tile, ...], ...]) -> tuple[tuple[str, ...], ...]:
         """Compute the canonical form of a grid based on its rotations and reflections."""
-        transformations = [
-            grid,                              # Original
-            grid[::-1],                        # Vertical flip
-            tuple(row[::-1] for row in grid),  # Horizontal flip
-            tuple(zip(*grid)),                 # 90-degree rotation
-            tuple(zip(*grid[::-1])),           # 90-degree rotation + vertical flip
-            tuple(zip(*tuple(row[::-1] for row in grid))),  # 90-degree rotation + horizontal flip
-            grid[::-1][::-1],                  # 180-degree rotation
-            tuple(zip(*grid[::-1][::-1]))      # 270-degree rotation
-        ]
+        def rotate_90(clockwise_grid):
+            return tuple(zip(*clockwise_grid[::-1]))
+
+        rotations = [grid]
+        for _ in range(3):
+            rotations.append(rotate_90(rotations[-1]))
+
+        reflected = tuple(row[::-1] for row in grid)
+        reflected_rotations = [reflected]
+        for _ in range(3):
+            reflected_rotations.append(rotate_90(reflected_rotations[-1]))
+
+        transformations = rotations + reflected_rotations
         # Convert each transformation to a comparable form (e.g., string representation)
         transformed_as_str = [tuple(tuple(str(tile) for tile in row) for row in t) for t in transformations]
         return min(transformed_as_str)  # Choose the lexicographically smallest transformation
